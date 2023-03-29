@@ -8,23 +8,23 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okhttp3.sse.EventSource;
 import okhttp3.sse.EventSourceListener;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import javax.websocket.Session;
 import java.util.Objects;
 
 /**
- * 描述：OpenAIEventSourceListener
+ * 描述：OpenAI流式输出Socket接收
  *
  * @author https:www.unfbx.com
- * @date 2023-02-22
+ * @date 2023-03-23
  */
 @Slf4j
-public class OpenAIEventSourceListener extends EventSourceListener {
+public class OpenAIWebSocketEventSourceListener extends EventSourceListener {
 
-    private SseEmitter sseEmitter;
+    private Session session;
 
-    public OpenAIEventSourceListener(SseEmitter sseEmitter) {
-        this.sseEmitter = sseEmitter;
+    public OpenAIWebSocketEventSourceListener(Session session) {
+        this.session = session;
     }
 
     /**
@@ -44,18 +44,13 @@ public class OpenAIEventSourceListener extends EventSourceListener {
         log.info("OpenAI返回数据：{}", data);
         if (data.equals("[DONE]")) {
             log.info("OpenAI返回数据结束了");
-            sseEmitter.send(SseEmitter.event()
-                    .id("[DONE]")
-                    .data("[DONE]")
-                    .reconnectTime(3000));
+            session.getBasicRemote().sendText("[DONE]");
             return;
         }
         ObjectMapper mapper = new ObjectMapper();
         ChatCompletionResponse completionResponse = mapper.readValue(data, ChatCompletionResponse.class); // 读取Json
-        sseEmitter.send(SseEmitter.event()
-                .id(completionResponse.getId())
-                .data(completionResponse.getChoices().get(0).getDelta())
-                .reconnectTime(3000));
+        String delta = mapper.writeValueAsString(completionResponse.getChoices().get(0).getDelta());
+        session.getBasicRemote().sendText(delta);
     }
 
 
@@ -68,7 +63,7 @@ public class OpenAIEventSourceListener extends EventSourceListener {
     @SneakyThrows
     @Override
     public void onFailure(EventSource eventSource, Throwable t, Response response) {
-        if(Objects.isNull(response)){
+        if (Objects.isNull(response)) {
             return;
         }
         ResponseBody body = response.body();

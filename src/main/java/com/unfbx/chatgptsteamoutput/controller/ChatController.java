@@ -3,6 +3,7 @@ package com.unfbx.chatgptsteamoutput.controller;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.unfbx.chatgpt.OpenAiStreamClient;
+import com.unfbx.chatgpt.entity.billing.CreditGrantsResponse;
 import com.unfbx.chatgpt.entity.chat.Message;
 import com.unfbx.chatgpt.exception.BaseException;
 import com.unfbx.chatgpt.exception.CommonError;
@@ -89,6 +90,11 @@ public class ChatController {
     @GetMapping("")
     public String index() {
         return "1.html";
+    }
+
+    @GetMapping("/websocket")
+    public String websocket() {
+        return "websocket.html";
     }
 
 }
