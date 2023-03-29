@@ -6,6 +6,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+
 /**
  * 描述：ChatgptSteamOutputApplication
  *
@@ -22,12 +25,14 @@ public class ChatgptSteamOutputApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ChatgptSteamOutputApplication.class, args);
+        System.out.println("启动成功！");
     }
 
 
     @Bean
     public OpenAiStreamClient openAiStreamClient() {
-        return OpenAiStreamClient.builder().apiHost(apiHost).apiKey(apiKey).build();
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 7890));
+        return OpenAiStreamClient.builder().apiHost(apiHost).apiKey(apiKey).proxy(proxy).build();
     }
 
 }

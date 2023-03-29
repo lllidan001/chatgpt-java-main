@@ -42,6 +42,8 @@ public class ChatController {
     @CrossOrigin
     public SseEmitter chat(@RequestParam("message") String msg, @RequestHeader Map<String, String> headers) throws IOException {
         //默认30秒超时,设置为0L则永不超时
+        //System.out.println("接收MSG:"+ msg);
+        log.info("接收MSG:"+ msg);
         SseEmitter sseEmitter = new SseEmitter(0l);
         String uid = headers.get("uid");
         if (StrUtil.isBlank(uid)) {
@@ -61,6 +63,7 @@ public class ChatController {
             messages.add(currentMessage);
         }
         sseEmitter.send(SseEmitter.event().id(uid).name("连接成功！！！！").data(LocalDateTime.now()).reconnectTime(3000));
+        log.info("连接成功"+ msg);
         sseEmitter.onCompletion(() -> {
             log.info(LocalDateTime.now() + ", uid#" + uid + ", on completion");
         });
@@ -75,9 +78,11 @@ public class ChatController {
                     }
                 }
         );
+        log.info("连接成功2222222"+ msg);
         OpenAIEventSourceListener openAIEventSourceListener = new OpenAIEventSourceListener(sseEmitter);
         openAiStreamClient.streamChatCompletion(messages, openAIEventSourceListener);
         LocalCache.CACHE.put(uid, JSONUtil.toJsonStr(messages), LocalCache.TIMEOUT);
+        log.info("连接成功33333"+ sseEmitter);
         return sseEmitter;
     }
 
